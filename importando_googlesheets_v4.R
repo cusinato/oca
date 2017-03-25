@@ -1,3 +1,8 @@
+while("googlesheets" %in% rownames(installed.packages()) == FALSE) install.packages("googlesheets")
+while("dplyr" %in% rownames(installed.packages()) == FALSE) install.packages("dplyr")
+while("readr" %in% rownames(installed.packages()) == FALSE) install.packages("readr")
+while("tidyr" %in% rownames(installed.packages()) == FALSE) install.packages("tidyr")
+while("stringr" %in% rownames(installed.packages()) == FALSE) install.packages("stringr")
 
 library(googlesheets)
 library(dplyr)
