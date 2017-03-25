@@ -10,10 +10,8 @@ library(readr)
 library(tidyr)
 library(stringr)
 
-# csv <- 'respostas - 20170320_fechado.csv'
-csv <- 'teste - respostas.csv'
+csv <- 'respostas - 20170329.csv'
 
-# nome_planilha <- 'Cesta JK AgroSustentável 22 de Março (respostas)'
 nome_planilha <- 'Cesta JK AgroSustentável 29 de Março (respostas)'
 
 # nome_planilha <- 'OCA - Orgânicos do Cerrado Agroecológico'
