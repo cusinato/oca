@@ -6,15 +6,7 @@ library(tidyr)
 library(stringr)
 
 # csv <- 'respostas - 20170320_fechado.csv'
-csv <- 'Cesta JK AgroSustentável 12 de Abril (respostas).csv'
-
-# nome_planilha <- 'Cesta JK AgroSustentável 22 de Março (respostas)'
-nome_planilha <- 'Cesta JK AgroSustentável 12 de Abril (respostas)'
-
-# nome_planilha <- 'OCA - Orgânicos do Cerrado Agroecológico'
-
-gs_title(nome_planilha) %>%
-  gs_download(to = csv, overwrite = T)
+csv <- 'Cesta JK AgroSustentável_25 de Abril (respostas).csv'
 
 csv %>% read_csv() %>% select(ts = one_of("Indicação de data e hora"),
                               nome = one_of("NOME COMPLETO"),
@@ -25,8 +17,31 @@ csv %>% read_csv() %>% select(ts = one_of("Indicação de data e hora"),
                               cep = one_of("CEP"),
                               pagamento = one_of("FORMA DE PAGAMENTO"),
                               everything()) -> cru
-cru <- select(cru, -X101, -X102, -X103, -X104)
-
+cru$cesta_pequena <- 1 * (cru[["CESTAS PRONTAS"]] == 'CESTA PEQUENA (15 itens já c/ desconto R$ 70,65) - Abóbora Moranga pequena, Agrião, Alface Crespa, Berinjela, Cebola, Cebolinha, Cenoura, Couve, Limão Taiti, Mexerica, Ovos Caipira, Pimenta de Cheiro, Quiabo, Rúcula, Tomate de Mesa')
+cru$cesta_media <- 1 * (cru[["CESTAS PRONTAS"]] == 'CESTA MÉDIA (20 itens já c/ desconto R$ 94,95) - Abacate médio, Abóbora Moranga pequena, Agrião, Alface Crespa, Alface Roxa, Banana Prata, Batata Inglesa, Berinjela, Beterraba, Cebola, Cebolinha, Cenoura, Couve, Limão Taiti, Mexerica, Ovos Caipira, Pimenta de Cheiro, Quiabo, Rúcula, Tomate de Mesa')
+cru$cesta_grande <- 1 * (cru[["CESTAS PRONTAS"]] == 'CESTA GRANDE (30 itens já c/ desconto R$ 156,15) - Abacate médio, Abóbora Moranga pequena, Agrião, Alface Crespa, Alface Roxa, Banana Prata, Batata Doce, Batata Inglesa, Berinjela, Beterraba, Brócolis Americano, Cebola, Cebolinha, Cenoura, Chuchu, Couve, Feijão Carioquinha, Jiló, Limão Taiti, Mandioca descascada, Maracujá Pérola do Cerrado, Mexerica, Ovos Caipira, Pepino, Pimenta de Cheiro, Quiabo, Rúcula, Salsa, Tomate de Mesa, Tomate Sweet Grape')
+cru[["CESTAS PRONTAS"]] <- NULL
+cru <- cru %>%
+  # mutate(
+  #   cesta_pequena = as.numeric(matches("CESTAS PRONTAS") == 'CESTA PEQUENA (15 itens já c/ desconto R$ 70,65) - Abóbora Moranga pequena, Agrião, Alface Crespa, Berinjela, Cebola, Cebolinha, Cenoura, Couve, Limão Taiti, Mexerica, Ovos Caipira, Pimenta de Cheiro, Quiabo, Rúcula, Tomate de Mesa'),
+  #   cesta_media = as.numeric(matches("CESTAS PRONTAS") == 'CESTA MÉDIA (20 itens já c/ desconto R$ 94,95) - Abacate médio, Abóbora Moranga pequena, Agrião, Alface Crespa, Alface Roxa, Banana Prata, Batata Inglesa, Berinjela, Beterraba, Cebola, Cebolinha, Cenoura, Couve, Limão Taiti, Mexerica, Ovos Caipira, Pimenta de Cheiro, Quiabo, Rúcula, Tomate de Mesa'),
+  #   cesta_grande = as.numeric(matches("CESTAS PRONTAS") == 'CESTA GRANDE (30 itens já c/ desconto R$ 156,15) - Abacate médio, Abóbora Moranga pequena, Agrião, Alface Crespa, Alface Roxa, Banana Prata, Batata Doce, Batata Inglesa, Berinjela, Beterraba, Brócolis Americano, Cebola, Cebolinha, Cenoura, Chuchu, Couve, Feijão Carioquinha, Jiló, Limão Taiti, Mandioca descascada, Maracujá Pérola do Cerrado, Mexerica, Ovos Caipira, Pepino, Pimenta de Cheiro, Quiabo, Rúcula, Salsa, Tomate de Mesa, Tomate Sweet Grape')
+  # ) %>% 
+  # setNames(if_else(
+  #   names(.) == "cesta_pequena", 
+  #   "cesta pequena - R$ 70,65",
+  #   if_else(
+  #     names(.) == "cesta_media",
+  #     "cesta média - R$ 94,95",
+  #     "cesta grande - R$ 156,15",
+  #     NA_character_
+  #   ),
+  #   NA_character_
+  # )) %>% 
+  setNames(gsub("PROMOÇÃO", "PROMOÇÃO -", names(.), fixed = T)) %>% 
+  setNames(gsub("cesta_pequena", "cesta pequena - R$ 70,65", names(.), fixed = T)) %>% 
+  setNames(gsub("cesta_media", "cesta média - R$ 94,95", names(.), fixed = T)) %>% 
+  setNames(gsub("cesta_grande", "cesta grande - R$ 156,15", names(.), fixed = T))
 # View(cru)
 
 precos <- data_frame(tx = names(cru)[-c(1:8)]) %>%
@@ -147,7 +162,7 @@ ls_cli <- (tb %>% arrange(as.numeric(gsub("-", "", cep))) %>% select(nome) %>% d
 arq_saida <- gsub('respostas', 'pedidos', csv)
 pedidos <- do.call(rbind, lapply(ls_cli, trata_pessoa, tb = tb)) %>% as_data_frame()
 pedidos %>% write_csv(arq_saida, col_names = F)
-arq_saida %>% gs_upload(sheet_title = gsub('\\.csv$', '', arq_saida))
+# arq_saida %>% gs_upload(sheet_title = gsub('\\.csv$', '', arq_saida))
 
 arq_saida <- gsub('respostas', 'produtos', csv)
 ttl_prd <- lema(tb = tb) %>%
@@ -161,7 +176,7 @@ ttl_prd <- lema(tb = tb) %>%
          'Valor total' = vl_ttl)
 # View(ttl_prd)
 write_csv(ttl_prd, arq_saida)
-arq_saida %>% gs_upload(sheet_title = gsub('\\.csv$', '', arq_saida))
+# arq_saida %>% gs_upload(sheet_title = gsub('\\.csv$', '', arq_saida))
 
 arq_saida <- gsub('respostas', 'clientes', csv)
 ttl_cli <- lema(tb = tb) %>%
@@ -173,4 +188,4 @@ ttl_cli <- lema(tb = tb) %>%
          'Valor total' = vl_ttl)
 # View(ttl_cli)
 write_csv(ttl_cli, arq_saida)
-arq_saida %>% gs_upload(sheet_title = gsub('\\.csv$', '', arq_saida))
+# arq_saida %>% gs_upload(sheet_title = gsub('\\.csv$', '', arq_saida))
